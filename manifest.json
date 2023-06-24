@@ -1,9 +1,9 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "CoinMarketCap Watchlist Enhancer",
   "version": "1.0",
-  "description": "Adds a 'Note' column to CoinMarketCap watchlist page.",
-  "permissions": ["tabs", "activeTab"],
+  "description": "Adds a 'Target Price' & Buy columns to CoinMarketCap watchlist page.",
+  "permissions": ["tabs", "activeTab", "storage"],
   "content_scripts": [
     {
       "matches": ["https://coinmarketcap.com/watchlist/"],

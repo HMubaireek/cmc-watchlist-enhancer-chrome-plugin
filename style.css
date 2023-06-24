@@ -1,7 +1,8 @@
-.cmc-table__cell:nth-child(7) {
-    /* Adjust the column index (7) based on the table structure */
-    width: 200px;
-    text-align: center;
-    font-weight: bold;
-  }
-  
+.editable-input {
+  width: 50px;
+}
+
+.buy-signal {
+  background-color: green !important;
+  color: white !important;
+}
