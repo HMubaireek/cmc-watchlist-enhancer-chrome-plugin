@@ -47,23 +47,10 @@ function debounce(func, delay) {
 }
 
 function checkForRowUpdates() {
-    const tableRows = document.querySelectorAll("tbody tr");
-
-    tableRows.forEach((row) => {
-        const isRowFilled = isRowFilledWithData(row);
-
-        if (isRowFilled) {
-            const columnIndex = columns_to_add.length + 1;
-            const columnConfig = columns_to_add[columnIndex - 1];
-            const value = getColumnValue(row, columnConfig);
-            const columnElement = row.children[columnIndex];
-
-            if (columnElement) {
-                columnElement.textContent = value;
-                checkForBuyColumn(columnConfig.name, value, columnElement);
-            }
-        }
-    });
+    const tableBody = document.querySelector(cmc_table_class);
+    if (tableBody) {
+        addColumns(tableBody);
+    }
 }
 
 function isRowFilledWithData(row) {
@@ -112,23 +99,28 @@ function addColumn(tableBody, columnConfig) {
         columnHeaderCell.appendChild(columnHeaderDiv);
 
         tableHeader.appendChild(columnHeaderCell);
-
         columnIndex = headerCells.length;
-
-        addColumnRowCells(tableRows, columnConfig);
     }
+
+    //add the extra cells to rows
+    addColumnRowCells(tableRows, columnIndex, columnConfig);
 
     // Add the column to each row
     addValuesToColumnRows(tableRows, columnIndex, columnConfig);
 }
 
-function addColumnRowCells(tableRows, columnConfig) {
+function addColumnRowCells(tableRows, headersCount, columnConfig) {
+    let customCellClass = 'cmc-table__cell';
+
     tableRows.forEach((row) => {
-        const column = document.createElement("td");
-        column.style.textAlign = "end";
-        column.classList.add("cmc-table__cell");
-        row.appendChild(column);
-        listenToColumnDoubleClicks(column, columnConfig);
+        const customCellsCount = row.querySelectorAll(`td.${customCellClass}`)?.length;
+        if (customCellsCount < columns_to_add.length) {
+            const column = document.createElement("td");
+            column.style.textAlign = "end";
+            column.classList.add(customCellClass);
+            row.appendChild(column);
+            listenToColumnDoubleClicks(column, columnConfig);
+        }
     });
 }
 
@@ -157,8 +149,8 @@ function checkForBuyColumn(columnName, value, columnElement) {
         const currentPrice = parseNumber(getPriceValue(columnElement)?.split("$")?.[1]);
         const priceDifference = currentPrice - targetPrice;
         const percentageDifference = (priceDifference / targetPrice) * 100;
-      
-        if (currentPrice <= targetPrice || percentageDifference <= 10) {
+
+        if (currentPrice <= targetPrice || percentageDifference <= 15) {
             columnElement.textContent = "Yes";
             columnElement.classList.add("buy-signal");
         } else {
@@ -330,3 +322,18 @@ function fetchColumnValues(callback) {
 }
 
 
+/*function tempSetTargetPrices() {
+    let dictionary = { "$INVEST": "$0.50", "$VHC": "$0.50", "$GLCH": "$10.00", "$STND": "$3.00", "$JUP": "$0.80", "$BLXM": "$0.89", "$BEAM": "$0.36", "$VITE": "$0.04", "$WAS": "$0.02", "$SEELE": "$0.00", "$HAPI": "$14.00", "$RDPX": "$24.00", "$MINA": "$0.20", "$IMX": "$0.15", "$OP": "$0.30", "$GLMR": "$0.35", "$CHNG": "$0.04", "$AZERO": "$0.60", "$KAS": "$0.00", "$ALBT": "$0.04", "$MTRG": "$0.99", "$ROUTE": "$0.95", "$CPOOL": "$0.03", "$TRIAS": "$1.10", "$WOO": "$0.08", "$BFR": "$0.07", "$ROSE": "$0.03", "$FET": "$0.06", "$RIO": "$0.02", "$ORAI": "$1.00", "$GDDY": "$0.01", "$KROM": "$0.02", "$MVX": "$1.30", "$DNX": "$0.03", "$GMX": "$15.00", "$VELA": "$0.10", "$TAO": "$60.00", "$VRA": "$0.00", "$QNT": "$42.00", "$CIC": "", "$BTC": "$11", "$ETH": "$700.00", "$ADA": "$0.15", "$VET": "$0.01", "$MATIC": "$0.33", "$METIS": "$8.00", "$DOT": "$3.00", "$NEAR": "$0.70" };
+    const storageKey = getStorageKey();
+
+    Object.keys(dictionary).forEach((key) => {
+        const symbol = key.replace("$", "");
+        const columnId = 'tp';
+        const watchListName = getWatchListName();
+        checkForNullsInDataObj(watchListName, symbol, columnId);
+        column_data[watchListName][symbol][columnId] = dictionary[key].replace("$", "");
+    });
+    chrome.storage.sync.set({ [storageKey]: column_data }, () => {
+        console.log("Column values saved", column_data);
+    });
+}*/
