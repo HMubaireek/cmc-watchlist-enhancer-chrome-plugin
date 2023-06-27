@@ -118,6 +118,7 @@ function addColumnRowCells(tableRows, headersCount, columnConfig) {
             const column = document.createElement("td");
             column.style.textAlign = "end";
             column.classList.add(customCellClass);
+            column.classList.add(columnConfig.id);
             row.appendChild(column);
             listenToColumnDoubleClicks(column, columnConfig);
         }
@@ -130,7 +131,7 @@ function addValuesToColumnRows(tableRows, columnIndex, columnConfig) {
         const columnElement = row.children[columnIndex];
         if (columnElement) {
             columnElement.textContent = value;
-            onColumnValueChange(columnElement, value, columnConfig, false);
+            onColumnValueChange(columnElement, value, columnConfig, false, false);
         }
     });
 }
@@ -140,22 +141,26 @@ function parseNumber(value) {
 }
 
 function checkForBuyColumn(columnName, value, columnElement) {
-    const columnConfig = columns_to_add.find((column) => column.name === columnName);
-    const buyColumn = columnConfig && columnConfig.id === "buy";
-    if (buyColumn) {
-        const row = columnElement.parentElement;
-        const targetColumnConfig = columns_to_add.find((column) => column.id === "tp");
-        const targetPrice = parseNumber(getColumnValue(row, targetColumnConfig));
-        const currentPrice = parseNumber(getPriceValue(columnElement)?.split("$")?.[1]);
-        const priceDifference = currentPrice - targetPrice;
-        const percentageDifference = (priceDifference / targetPrice) * 100;
+    const currentColumnConfig = columns_to_add.find((column) => column.name === columnName);
+    const targetColumnConfig = columns_to_add.find((column) => column.id === "tp");
+    const buyColumnConfig = columns_to_add.find((column) => column.id === "buy");
+    const isBuyCol = currentColumnConfig && currentColumnConfig.id === "buy";
+    const isTargetCol = currentColumnConfig && currentColumnConfig.id === "tp";
+    const row = columnElement.parentElement;
+    const targetPrice = isTargetCol ? parseNumber(value) : parseNumber(getColumnValue(row, targetColumnConfig));
+    const currentPrice = parseNumber(getPriceValue(columnElement)?.split("$")?.[1]);
+    const priceDifference = currentPrice - targetPrice;
+    const percentageDifference = (priceDifference / targetPrice) * 100;
 
+    let buyColumnElement = isBuyCol ? columnElement : row.querySelector(`td.${buyColumnConfig.id}`);
+
+    if (buyColumnElement) {
         if (currentPrice <= targetPrice || percentageDifference <= 15) {
-            columnElement.textContent = "Yes";
-            columnElement.classList.add("buy-signal");
+            buyColumnElement.textContent = "Yes";
+            buyColumnElement.classList.add("buy-signal");
         } else {
-            columnElement.textContent = "No";
-            columnElement.classList.remove("buy-signal");
+            buyColumnElement.textContent = "No";
+            buyColumnElement.classList.remove("buy-signal");
         }
     }
 }
@@ -261,7 +266,7 @@ function createEditableInput(columnElement, columnConfig) {
     });
 }
 
-function onColumnValueChange(element, newValue, columnConfig, persist = true) {
+function onColumnValueChange(element, newValue, columnConfig, persist = true, inputChange = true) {
     const columnName = columnConfig.name;
 
     if (persist) {
@@ -272,7 +277,7 @@ function onColumnValueChange(element, newValue, columnConfig, persist = true) {
 
     }
     //perform operations on new values
-    checkForBuyColumn(columnName, newValue, element);
+    checkForBuyColumn(columnName, newValue, element, inputChange);
 }
 
 function updateColumnValues(addedRows, removedRows) {
@@ -296,7 +301,7 @@ function updateColumnValues(addedRows, removedRows) {
 }
 
 function getWatchListName() {
-    return document.querySelector('h1 .datboK')?.textContent?.replace(/ /g, "_");
+    return document.querySelector('.cmc-watchlist section h1 span div').textContent?.trim()?.replace(/ /g, "_");
 }
 
 function getStorageKey() {
